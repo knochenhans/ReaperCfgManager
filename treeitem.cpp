@@ -41,8 +41,10 @@ void TreeItem::alignChildren(TreeItem *other) {
         if (other->child(i)->data(0).toString().compare(
                 this->child(j)->data(0).toString(), Qt::CaseInsensitive) == 0) {
 
-          // Found child in other tree, move this accordingly
+          // First sort all sub children
+          this->child(j)->alignChildren(other->child(i));
 
+          // Found child in other tree, move this accordingly
           m_childItems.move(j, i);
 
           found = true;
@@ -57,22 +59,6 @@ void TreeItem::alignChildren(TreeItem *other) {
         TreeItem *filler = new TreeItem(data, this);
         this->insertChild(filler, i);
       }
-    }
-  }
-}
-
-void TreeItem::fillChildren(TreeItem *other) {
-  // Fill up empty rows
-  QList<QVariant> data;
-  data << ""
-       << "";
-  TreeItem *filler = new TreeItem(data, this);
-
-  int diff = this->childCount() - other->childCount();
-  if (diff < 0) {
-    // Fill up children until equal with other model
-    for (int i = 0; i < abs(diff); i++) {
-      this->appendChild(filler);
     }
   }
 }

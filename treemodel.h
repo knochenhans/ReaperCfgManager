@@ -32,7 +32,6 @@ public:
                   const QModelIndex &parent = QModelIndex());
   void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
   void align(TreeModel *other);
-  void fill(TreeModel *other);
 
   TreeItem *getRootItem() const;
 

@@ -15,7 +15,6 @@ public:
   void removeChild(int row);
   void sortChildren();
   void alignChildren(TreeItem *other);
-  void fillChildren(TreeItem *other);
 
   TreeItem *child(int row);
   int childCount() const;

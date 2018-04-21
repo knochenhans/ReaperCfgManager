@@ -63,12 +63,6 @@ void TreeModel::align(TreeModel *other) {
   endResetModel();
 }
 
-void TreeModel::fill(TreeModel *other) {
-  beginResetModel();
-  rootItem->fillChildren(other->getRootItem());
-  endResetModel();
-}
-
 QVariant TreeModel::data(const QModelIndex &index, int role) const {
   if (!index.isValid()) {
     return QVariant();
