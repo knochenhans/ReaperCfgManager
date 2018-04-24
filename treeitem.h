@@ -16,6 +16,9 @@ public:
   void sortChildren();
   void alignChildren(TreeItem *other);
 
+  void setData(const QList<QVariant> &data);
+  void setDataCol(const QVariant &data, int col);
+
   TreeItem *child(int row);
   int childCount() const;
   int columnCount() const;

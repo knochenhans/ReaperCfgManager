@@ -63,6 +63,11 @@ void TreeItem::alignChildren(TreeItem *other) {
   }
 }
 
+void TreeItem::setData(const QList<QVariant> &data) { m_itemData = data; }
+void TreeItem::setDataCol(const QVariant &data, int col) {
+  m_itemData[col] = data;
+}
+
 TreeItem *TreeItem::child(int row) { return m_childItems.value(row); }
 
 int TreeItem::childCount() const { return m_childItems.count(); }

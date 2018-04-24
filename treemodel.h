@@ -4,6 +4,7 @@
 #include <QAbstractItemModel>
 #include <QColor>
 #include <QDebug>
+#include <QFont>
 #include <QModelIndex>
 #include <QRegularExpression>
 #include <QVariant>
@@ -20,7 +21,7 @@ public:
   QVariant data(const QModelIndex &index, int role) const override;
   Qt::ItemFlags flags(const QModelIndex &index) const override;
   bool setData(const QModelIndex &index, const QVariant &value,
-               int role = Qt::EditRole);
+               int role = Qt::EditRole, int col = 0);
   QVariant headerData(int section, Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const override;
   QModelIndex index(int row, int column,
@@ -35,10 +36,13 @@ public:
 
   TreeItem *getRootItem() const;
 
+  void setOtherModel(TreeModel *value);
+
 private:
   void setupModelData(const QStringList &lines, TreeItem *parent);
 
   TreeItem *rootItem;
+  TreeModel *otherModel;
 };
 
 #endif // TREEMODEL_H

@@ -15,9 +15,18 @@ TreeModel::TreeModel(const QString &data, QObject *parent)
 TreeModel::~TreeModel() { delete rootItem; }
 
 bool TreeModel::setData(const QModelIndex &index, const QVariant &value,
-                        int role) {
+                        int role, int col) {
+  if (role == Qt::DisplayRole) {
+    TreeItem *i = static_cast<TreeItem *>(index.internalPointer());
 
-  return false;
+    i->setDataCol(value, col);
+  }
+
+  emit dataChanged(index, index);
+
+  return true;
+
+  // return QAbstractItemModel::setData(index, value, role);
 }
 
 int TreeModel::columnCount(const QModelIndex &parent) const {
@@ -60,6 +69,7 @@ void TreeModel::sort(int column, Qt::SortOrder order) {
 void TreeModel::align(TreeModel *other) {
   beginResetModel();
   rootItem->alignChildren(other->getRootItem());
+
   endResetModel();
 }
 
@@ -68,13 +78,51 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const {
     return QVariant();
   }
 
-  if (role != Qt::DisplayRole) {
-    return QVariant();
+  if (role == Qt::DisplayRole) {
+    TreeItem *item = static_cast<TreeItem *>(index.internalPointer());
+
+    return item->data(index.column());
   }
 
-  TreeItem *item = static_cast<TreeItem *>(index.internalPointer());
+  if (role == Qt::FontRole) {
+    if (!index.parent().isValid()) {
+      QFont boldFont;
+      boldFont.setBold(true);
+      return boldFont;
+    }
+  }
 
-  return item->data(index.column());
+  if (role == Qt::BackgroundRole) {
+    // Color empty rows in other widget green
+
+    if (otherModel) {
+      // Find same field in other model
+
+      QModelIndex otherIndex;
+      QModelIndex otherParentIndex;
+
+      if (index.parent().isValid()) {
+        int otherParentRow = index.parent().row();
+        int otherParentColumn = index.parent().column();
+
+        // Find same parent in other widget
+        otherParentIndex =
+            otherModel->index(otherParentRow, otherParentColumn, QModelIndex());
+      }
+
+      otherIndex =
+          otherModel->index(index.row(), index.column(), otherParentIndex);
+
+      if (index.data().toString().compare(otherIndex.data().toString(),
+                                          Qt::CaseInsensitive) != 0) {
+        if (index.data().toString() == "") {
+          return QVariant(QColor("#D0FFA3"));
+        }
+      }
+    }
+  }
+
+  return QVariant();
 }
 
 Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const {
@@ -191,5 +239,7 @@ void TreeModel::setupModelData(const QStringList &lines, TreeItem *parent) {
     number++;
   }
 }
+
+void TreeModel::setOtherModel(TreeModel *value) { otherModel = value; }
 
 TreeItem *TreeModel::getRootItem() const { return rootItem; }
