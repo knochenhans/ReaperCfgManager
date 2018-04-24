@@ -4,6 +4,7 @@
 #include <QAbstractItemModel>
 #include <QColor>
 #include <QDebug>
+#include <QFont>
 #include <QModelIndex>
 #include <QRegularExpression>
 #include <QVariant>
@@ -35,10 +36,13 @@ public:
 
   TreeItem *getRootItem() const;
 
+  void setOtherModel(TreeModel *value);
+
 private:
   void setupModelData(const QStringList &lines, TreeItem *parent);
 
   TreeItem *rootItem;
+  TreeModel *otherModel;
 };
 
 #endif // TREEMODEL_H

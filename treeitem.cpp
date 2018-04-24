@@ -32,12 +32,18 @@ void TreeItem::sortChildren() {
 
 void TreeItem::alignChildren(TreeItem *other) {
   // Find associated rows and move accordingly
+
+  // Search in other tree
   for (int i = 0; i < other->childCount(); i++) {
+
     // Ignore blank lines
     if (other->child(i)->data(0).toString() != "") {
       bool found = false;
 
+      // Look for similar row in this tree
       for (int j = 0; j < this->childCount(); j++) {
+
+        // Compare this to other row
         if (other->child(i)->data(0).toString().compare(
                 this->child(j)->data(0).toString(), Qt::CaseInsensitive) == 0) {
 
@@ -51,16 +57,27 @@ void TreeItem::alignChildren(TreeItem *other) {
         }
       }
 
-      // Child not found in other tree, leave blank here
+      // Child not found in other tree, leave blank row here
       if (!found) {
         QList<QVariant> data;
         data << ""
              << "";
         TreeItem *filler = new TreeItem(data, this);
+
+        // Fill sub children
+        for (int c = 0; c < other->child(i)->childCount(); c++) {
+          filler->appendChild(new TreeItem(data, filler));
+        }
+
         this->insertChild(filler, i);
       }
     }
   }
+}
+
+void TreeItem::setData(const QList<QVariant> &data) { m_itemData = data; }
+void TreeItem::setDataCol(const QVariant &data, int col) {
+  m_itemData[col] = data;
 }
 
 TreeItem *TreeItem::child(int row) { return m_childItems.value(row); }
