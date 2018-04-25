@@ -60,6 +60,7 @@ void MainWindow::open() {
   file1.open(QIODevice::ReadOnly);
   model1 = new TreeModel(file1.readAll());
   view1->setModel(model1);
+  // view1->setHeaderHidden(true);
   file1.close();
 
   QFile file2("/home/andre/.config/REAPER/reaper.ini");
@@ -67,6 +68,7 @@ void MainWindow::open() {
   file2.open(QIODevice::ReadOnly);
   model2 = new TreeModel(file2.readAll());
   view2->setModel(model2);
+  // view2->setHeaderHidden(true);
   file2.close();
 
   model1->setOtherModel(model2);
