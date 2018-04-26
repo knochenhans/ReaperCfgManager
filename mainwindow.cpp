@@ -99,13 +99,9 @@ void MainWindow::open() {
   model2->setOtherModel(model1);
 
   // Set column width
-  for (int c = 0; c < model1->columnCount(); c++) {
-    view1->setColumnWidth(c, 200);
-  }
 
-  for (int c = 0; c < model2->columnCount(); c++) {
-    view2->setColumnWidth(c, 200);
-  }
+  view1->resizeColumnToContents(0);
+  view2->resizeColumnToContents(0);
 
   // Align files to eacher (sort right file content by like left one, fill
   // differing contents with blank rows)
