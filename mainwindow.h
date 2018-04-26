@@ -4,6 +4,7 @@
 #include <QActionGroup>
 #include <QFileDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -30,6 +31,10 @@ public slots:
                          const QItemSelection &deselected);
   void btnToLeftClicked();
   void btnToRightClicked();
+
+  void btnFilterToRightClicked();
+  void btnFilterEqualClicked();
+
   void expanded1(const QModelIndex &index);
   void expanded2(const QModelIndex &index);
   void collapsed1(const QModelIndex &index);
@@ -61,8 +66,14 @@ private:
   QTreeView *view1;
   QTreeView *view2;
 
+  QLineEdit *filepath1;
+  QLineEdit *filepath2;
+
   QPushButton *btnToLeft;
   QPushButton *btnToRight;
+
+  QPushButton *btnFilterToRight;
+  QPushButton *btnFilterEqual;
 
   void Test();
 };

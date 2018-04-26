@@ -12,24 +12,38 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   view2->setWindowTitle(QObject::tr("Simple Tree Model"));
   view2->show();
 
-  QHBoxLayout *layout = new QHBoxLayout;
+  filepath1 = new QLineEdit();
+  filepath2 = new QLineEdit();
 
+  QHBoxLayout *layout = new QHBoxLayout;
   QVBoxLayout *center = new QVBoxLayout;
+  QVBoxLayout *tree1 = new QVBoxLayout;
+  QVBoxLayout *tree2 = new QVBoxLayout;
 
   btnToLeft = new QPushButton("<", this);
   btnToRight = new QPushButton(">", this);
+  btnFilterEqual = new QPushButton("=", this);
+  btnFilterToRight = new QPushButton(">", this);
 
+  btnFilterEqual->setMaximumWidth(24);
+  btnFilterToRight->setMaximumWidth(24);
   btnToLeft->setMaximumWidth(32);
   btnToRight->setMaximumWidth(32);
 
+  center->addWidget(btnFilterToRight);
+  center->addWidget(btnFilterEqual);
   center->addWidget(btnToLeft);
   center->addWidget(btnToRight);
 
-  layout->setMargin(5);
+  // layout->setMargin(5);
 
-  layout->addWidget(view1);
+  tree1->addWidget(filepath1);
+  tree1->addWidget(view1);
+  layout->addLayout(tree1);
   layout->addLayout(center);
-  layout->addWidget(view2);
+  tree2->addWidget(filepath2);
+  tree2->addWidget(view2);
+  layout->addLayout(tree2);
 
   widget->setLayout(layout);
 
@@ -63,6 +77,11 @@ void MainWindow::open() {
   // view1->setHeaderHidden(true);
   file1.close();
 
+  // Elide Paths
+  QFontMetrics metrix1(filepath1->font());
+  filepath1->setText(metrix1.elidedText(file1.fileName(), Qt::ElideMiddle,
+                                        filepath1->width()));
+
   QFile file2("/home/andre/.config/REAPER/reaper.ini");
 
   file2.open(QIODevice::ReadOnly);
@@ -70,6 +89,11 @@ void MainWindow::open() {
   view2->setModel(model2);
   // view2->setHeaderHidden(true);
   file2.close();
+
+  // Elide Paths
+  QFontMetrics metrix2(filepath2->font());
+  filepath2->setText(metrix2.elidedText(file2.fileName(), Qt::ElideMiddle,
+                                        filepath2->width()));
 
   model1->setOtherModel(model2);
   model2->setOtherModel(model1);
@@ -107,6 +131,10 @@ void MainWindow::open() {
 
   connect(btnToLeft, SIGNAL(clicked(bool)), this, SLOT(btnToLeftClicked()));
   connect(btnToRight, SIGNAL(clicked(bool)), this, SLOT(btnToRightClicked()));
+  connect(btnFilterToRight, SIGNAL(clicked(bool)), this,
+          SLOT(btnFilterToRightClicked()));
+  connect(btnFilterEqual, SIGNAL(clicked(bool)), this,
+          SLOT(btnFilterEqualClicked()));
 
   connect(view1, SIGNAL(expanded(QModelIndex)), this,
           SLOT(expanded1(QModelIndex)));
@@ -199,6 +227,9 @@ void MainWindow::btnToLeftClicked() {
 }
 
 void MainWindow::btnToRightClicked() {}
+
+void MainWindow::btnFilterToRightClicked() {}
+void MainWindow::btnFilterEqualClicked() {}
 
 void MainWindow::expanded1(const QModelIndex &index) {
   expandOther(index, view2);
