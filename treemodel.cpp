@@ -64,9 +64,9 @@ void TreeModel::sort(int column, Qt::SortOrder order) {
   endResetModel();
 }
 
-void TreeModel::align(TreeModel *other) {
+void TreeModel::align() {
   beginResetModel();
-  rootItem->alignChildren(other->getRootItem());
+  rootItem->alignChildren(otherModel->getRootItem());
 
   endResetModel();
 }

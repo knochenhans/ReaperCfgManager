@@ -32,7 +32,7 @@ public:
   bool removeRows(int row, int count,
                   const QModelIndex &parent = QModelIndex());
   void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
-  void align(TreeModel *other);
+  void align();
 
   TreeItem *getRootItem() const;
 

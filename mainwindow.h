@@ -61,19 +61,16 @@ private:
 
   QAction *testAct;
 
-  TreeModel *model1;
-  TreeModel *model2;
-  QTreeView *view1;
-  QTreeView *view2;
+  QList<QTreeView *> views;
+  QList<TreeModel *> models;
+  QList<QLineEdit *> filepaths;
+  QList<QPushButton *> filepathBrowse;
 
-  QLineEdit *filepath1;
-  QLineEdit *filepath2;
+  QPushButton *toLeft;
+  QPushButton *toRight;
 
-  QPushButton *btnToLeft;
-  QPushButton *btnToRight;
-
-  QPushButton *btnFilterToRight;
-  QPushButton *btnFilterEqual;
+  QPushButton *filterToRight;
+  QPushButton *filterEqual;
 
   void Test();
 };

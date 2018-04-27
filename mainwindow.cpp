@@ -4,45 +4,42 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   QWidget *widget = new QWidget;
   setCentralWidget(widget);
 
-  view1 = new QTreeView();
-  view1->setWindowTitle(QObject::tr("Simple Tree Model"));
-  view1->show();
+  for (int i = 0; i < 2; i++) {
+    views << new QTreeView;
+    views[i]->setWindowTitle(QObject::tr("Configuration File Tree View"));
+    views[i]->show();
 
-  view2 = new QTreeView();
-  view2->setWindowTitle(QObject::tr("Simple Tree Model"));
-  view2->show();
-
-  filepath1 = new QLineEdit();
-  filepath2 = new QLineEdit();
+    filepaths << new QLineEdit;
+  }
 
   QHBoxLayout *layout = new QHBoxLayout;
   QVBoxLayout *center = new QVBoxLayout;
   QVBoxLayout *tree1 = new QVBoxLayout;
   QVBoxLayout *tree2 = new QVBoxLayout;
 
-  btnToLeft = new QPushButton("<", this);
-  btnToRight = new QPushButton(">", this);
-  btnFilterEqual = new QPushButton("=", this);
-  btnFilterToRight = new QPushButton(">", this);
+  toLeft = new QPushButton("<", this);
+  toRight = new QPushButton(">", this);
+  filterEqual = new QPushButton("=", this);
+  filterToRight = new QPushButton(">", this);
 
-  btnFilterEqual->setMaximumWidth(24);
-  btnFilterToRight->setMaximumWidth(24);
-  btnToLeft->setMaximumWidth(32);
-  btnToRight->setMaximumWidth(32);
+  filterEqual->setMaximumWidth(24);
+  filterToRight->setMaximumWidth(24);
+  toLeft->setMaximumWidth(32);
+  toRight->setMaximumWidth(32);
 
-  center->addWidget(btnFilterToRight);
-  center->addWidget(btnFilterEqual);
-  center->addWidget(btnToLeft);
-  center->addWidget(btnToRight);
+  center->addWidget(filterToRight);
+  center->addWidget(filterEqual);
+  center->addWidget(toLeft);
+  center->addWidget(toRight);
 
   // layout->setMargin(5);
 
-  tree1->addWidget(filepath1);
-  tree1->addWidget(view1);
+  tree1->addWidget(filepaths[0]);
+  tree1->addWidget(views[0]);
   layout->addLayout(tree1);
   layout->addLayout(center);
-  tree2->addWidget(filepath2);
-  tree2->addWidget(view2);
+  tree2->addWidget(filepaths[1]);
+  tree2->addWidget(views[1]);
   layout->addLayout(tree2);
 
   widget->setLayout(layout);
@@ -54,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   setMinimumSize(160, 160);
   resize(1024, 600);
 
-  // view1->setItemDelegate(new TestDelegate);
+  // views[0]->setItemDelegate(new TestDelegate);
 }
 
 MainWindow::~MainWindow() {}
@@ -66,84 +63,74 @@ void MainWindow::open() {
   //      "build-ReaperCfgManager-Desktop-Debug/data/",
   //      tr("Reaper Configuration Files (*.ini)"));
 
-  QFile file1("/mnt/Daten/Datentausch/homeshare/Programmierung/C/"
-              "build-ReaperCfgManager-Desktop-Debug/data/REAPER.ini");
+  QList<QFile *> files;
+  QList<QItemSelectionModel *> selectionModels;
 
+  files << new QFile("/mnt/Daten/Datentausch/homeshare/Programmierung/C/"
+                     "build-ReaperCfgManager-Desktop-Debug/data/REAPER.ini");
+  files << new QFile("/home/andre/.config/REAPER/reaper.ini");
   // connect(model, &TreeModel::dataChanged, this, &MainWindow::updateView);
 
-  file1.open(QIODevice::ReadOnly);
-  model1 = new TreeModel(file1.readAll());
-  view1->setModel(model1);
-  // view1->setHeaderHidden(true);
-  file1.close();
+  for (int i = 0; i < 2; i++) {
+    files[i]->open(QIODevice::ReadOnly);
 
-  // Elide Paths
-  QFontMetrics metrix1(filepath1->font());
-  filepath1->setText(metrix1.elidedText(file1.fileName(), Qt::ElideMiddle,
-                                        filepath1->width()));
+    models << new TreeModel(files[i]->readAll());
+  }
 
-  QFile file2("/home/andre/.config/REAPER/reaper.ini");
+  for (int i = 0; i < 2; i++) {
+    views[i]->setModel(models[i]);
+    files[i]->close();
 
-  file2.open(QIODevice::ReadOnly);
-  model2 = new TreeModel(file2.readAll());
-  view2->setModel(model2);
-  // view2->setHeaderHidden(true);
-  file2.close();
+    // Elide Paths
+    QFontMetrics metrix(filepaths[i]->font());
+    filepaths[i]->setText(metrix.elidedText(
+        files[i]->fileName(), Qt::ElideMiddle, filepaths[i]->width()));
 
-  // Elide Paths
-  QFontMetrics metrix2(filepath2->font());
-  filepath2->setText(metrix2.elidedText(file2.fileName(), Qt::ElideMiddle,
-                                        filepath2->width()));
+    models[i]->setOtherModel(models[(i + 1) % 2]);
 
-  model1->setOtherModel(model2);
-  model2->setOtherModel(model1);
+    // Align files to eacher (sort right file content by like left one, fill
+    // differing contents with blank rows)
 
-  // Set column width
+    models[i]->align();
 
-  view1->resizeColumnToContents(0);
-  view2->resizeColumnToContents(0);
+    // Set column width
 
-  // Align files to eacher (sort right file content by like left one, fill
-  // differing contents with blank rows)
+    views[i]->resizeColumnToContents(0);
 
-  model1->align(model2);
-  model2->align(model1);
+    // Set up selection
 
-  // Set up selection
-
-  QItemSelectionModel *selectionModel1 = new QItemSelectionModel(model1);
-  QItemSelectionModel *selectionModel2 = new QItemSelectionModel(model2);
-  view1->setSelectionModel(selectionModel1);
-  view2->setSelectionModel(selectionModel2);
+    selectionModels << new QItemSelectionModel(models[i]);
+    views[i]->setSelectionModel(selectionModels[i]);
+  }
 
   connect(
-      selectionModel1,
+      selectionModels[0],
       SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
       this, SLOT(selectionChanged1(QItemSelection, QItemSelection)));
   connect(
-      selectionModel2,
+      selectionModels[1],
       SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
       this, SLOT(selectionChanged2(QItemSelection, QItemSelection)));
 
-  connect(btnToLeft, SIGNAL(clicked(bool)), this, SLOT(btnToLeftClicked()));
-  connect(btnToRight, SIGNAL(clicked(bool)), this, SLOT(btnToRightClicked()));
-  connect(btnFilterToRight, SIGNAL(clicked(bool)), this,
+  connect(toLeft, SIGNAL(clicked(bool)), this, SLOT(btnToLeftClicked()));
+  connect(toRight, SIGNAL(clicked(bool)), this, SLOT(btnToRightClicked()));
+  connect(filterToRight, SIGNAL(clicked(bool)), this,
           SLOT(btnFilterToRightClicked()));
-  connect(btnFilterEqual, SIGNAL(clicked(bool)), this,
+  connect(filterEqual, SIGNAL(clicked(bool)), this,
           SLOT(btnFilterEqualClicked()));
 
-  connect(view1, SIGNAL(expanded(QModelIndex)), this,
+  connect(views[0], SIGNAL(expanded(QModelIndex)), this,
           SLOT(expanded1(QModelIndex)));
-  connect(view2, SIGNAL(expanded(QModelIndex)), this,
+  connect(views[1], SIGNAL(expanded(QModelIndex)), this,
           SLOT(expanded2(QModelIndex)));
 
-  connect(view1, SIGNAL(collapsed(QModelIndex)), this,
+  connect(views[0], SIGNAL(collapsed(QModelIndex)), this,
           SLOT(collapsed1(QModelIndex)));
-  connect(view2, SIGNAL(collapsed(QModelIndex)), this,
+  connect(views[1], SIGNAL(collapsed(QModelIndex)), this,
           SLOT(collapsed2(QModelIndex)));
 
-  connect(view1->verticalScrollBar(), SIGNAL(valueChanged(int)),
-          view2->verticalScrollBar(), SLOT(setValue(int)));
+  connect(views[0]->verticalScrollBar(), SIGNAL(valueChanged(int)),
+          views[1]->verticalScrollBar(), SLOT(setValue(int)));
 }
 
 void MainWindow::save() {}
@@ -156,12 +143,12 @@ void MainWindow::updateView() {
 
 void MainWindow::selectionChanged1(const QItemSelection &selected,
                                    const QItemSelection &deselected) {
-  selectOther(selected, view2);
+  selectOther(selected, views[1]);
 }
 
 void MainWindow::selectionChanged2(const QItemSelection &selected,
                                    const QItemSelection &deselected) {
-  selectOther(selected, view1);
+  selectOther(selected, views[0]);
 }
 
 void MainWindow::selectOther(const QItemSelection &selected,
@@ -192,7 +179,7 @@ void MainWindow::selectOther(const QItemSelection &selected,
 }
 
 void MainWindow::btnToLeftClicked() {
-  QModelIndexList indexes = view2->selectionModel()->selection().indexes();
+  QModelIndexList indexes = views[1]->selectionModel()->selection().indexes();
 
   foreach (const QModelIndex &index, indexes) {
     // Copy data from right to left
@@ -212,13 +199,13 @@ void MainWindow::btnToLeftClicked() {
       int parentRow = index.parent().row();
       int parentColumn = index.parent().column();
 
-      parentIndex = model1->index(parentRow, parentColumn, QModelIndex());
+      parentIndex = models[0]->index(parentRow, parentColumn, QModelIndex());
     }
 
-    otherIndex = model1->index(row, index.column(), parentIndex);
+    otherIndex = models[0]->index(row, index.column(), parentIndex);
 
-    // model1->setData(otherIndex, data, Qt::DisplayRole, index.column());
-    model1->setData(otherIndex, data, Qt::DisplayRole);
+    // models[0]->setData(otherIndex, data, Qt::DisplayRole, index.column());
+    models[0]->setData(otherIndex, data, Qt::DisplayRole);
   }
 }
 
@@ -228,11 +215,11 @@ void MainWindow::btnFilterToRightClicked() {}
 void MainWindow::btnFilterEqualClicked() {}
 
 void MainWindow::expanded1(const QModelIndex &index) {
-  expandOther(index, view2);
+  expandOther(index, views[1]);
 }
 
 void MainWindow::expanded2(const QModelIndex &index) {
-  expandOther(index, view1);
+  expandOther(index, views[0]);
 }
 
 void MainWindow::expandOther(const QModelIndex &index, QTreeView *otherView) {
@@ -254,11 +241,11 @@ void MainWindow::expandOther(const QModelIndex &index, QTreeView *otherView) {
 }
 
 void MainWindow::collapsed1(const QModelIndex &index) {
-  collapseOther(index, view2);
+  collapseOther(index, views[1]);
 }
 
 void MainWindow::collapsed2(const QModelIndex &index) {
-  collapseOther(index, view1);
+  collapseOther(index, views[0]);
 }
 
 void MainWindow::collapseOther(const QModelIndex &index, QTreeView *otherView) {
