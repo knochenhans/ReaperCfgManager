@@ -10,12 +10,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     views[i]->show();
 
     filepaths << new QLineEdit;
+    filepathBrowse << new QPushButton("…");
+    filepathBrowse[i]->setMaximumWidth(32);
   }
 
   QHBoxLayout *layout = new QHBoxLayout;
   QVBoxLayout *center = new QVBoxLayout;
-  QVBoxLayout *tree1 = new QVBoxLayout;
-  QVBoxLayout *tree2 = new QVBoxLayout;
+  QVBoxLayout *treeLayout1 = new QVBoxLayout;
+  QVBoxLayout *treeLayout2 = new QVBoxLayout;
+  QHBoxLayout *filepathLayout1 = new QHBoxLayout;
+  QHBoxLayout *filepathLayout2 = new QHBoxLayout;
 
   toLeft = new QPushButton("<", this);
   toRight = new QPushButton(">", this);
@@ -34,13 +38,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
   // layout->setMargin(5);
 
-  tree1->addWidget(filepaths[0]);
-  tree1->addWidget(views[0]);
-  layout->addLayout(tree1);
+  filepathLayout1->addWidget(filepaths[0]);
+  filepathLayout1->addWidget(filepathBrowse[0]);
+  filepathLayout2->addWidget(filepaths[1]);
+  filepathLayout2->addWidget(filepathBrowse[1]);
+  treeLayout1->addLayout(filepathLayout1);
+  treeLayout1->addWidget(views[0]);
+  layout->addLayout(treeLayout1);
   layout->addLayout(center);
-  tree2->addWidget(filepaths[1]);
-  tree2->addWidget(views[1]);
-  layout->addLayout(tree2);
+  treeLayout2->addLayout(filepathLayout2);
+  treeLayout2->addWidget(views[1]);
+  layout->addLayout(treeLayout2);
 
   widget->setLayout(layout);
 
