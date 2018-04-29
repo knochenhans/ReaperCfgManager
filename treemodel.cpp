@@ -3,13 +3,11 @@
 
 #include <QStringList>
 
+TreeModel::TreeModel(QObject *parent) : QAbstractItemModel(parent) {}
+
 TreeModel::TreeModel(const QString &data, QObject *parent)
     : QAbstractItemModel(parent) {
-  QList<QVariant> rootData;
-  rootData << "Key"
-           << "Value";
-  rootItem = new TreeItem(rootData);
-  setupModelData(data.split(QString("\n")), rootItem);
+  load(data);
 }
 
 TreeModel::~TreeModel() { delete rootItem; }
@@ -241,5 +239,38 @@ void TreeModel::setupModelData(const QStringList &lines, TreeItem *parent) {
 }
 
 void TreeModel::setOtherModel(TreeModel *value) { otherModel = value; }
+
+void TreeModel::load(const QString &data) {
+  beginResetModel();
+  QList<QVariant> rootData;
+  rootData << "Key"
+           << "Value";
+  rootItem = new TreeItem(rootData);
+  setupModelData(data.split(QString("\n")), rootItem);
+  endResetModel();
+}
+
+void TreeModel::save(QTextStream &out) {
+  for (int i = 0; i < rootItem->childCount(); i++) {
+    TreeItem *item = rootItem->child(i);
+
+    if (!item->data(0).toString().isEmpty()) {
+
+      out << "[" << item->data(0).toString() << "]" << endl;
+
+      for (int j = 0; j < item->childCount(); j++) {
+        TreeItem *subItem = item->child(j);
+
+        if (!subItem->data(0).toString().isEmpty()) {
+
+          out << subItem->data(0).toString() << "="
+              << subItem->data(1).toString() << endl;
+        }
+      }
+
+      out << endl;
+    }
+  }
+}
 
 TreeItem *TreeModel::getRootItem() const { return rootItem; }

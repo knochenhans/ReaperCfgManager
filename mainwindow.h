@@ -29,20 +29,26 @@ public slots:
                          const QItemSelection &deselected);
   void selectionChanged2(const QItemSelection &selected,
                          const QItemSelection &deselected);
-  void btnToLeftClicked();
-  void btnToRightClicked();
+  void toLeftClicked();
+  void toRightClicked();
 
-  void btnFilterToRightClicked();
-  void btnFilterEqualClicked();
+  void filterToRightClicked();
+  void filterEqualClicked();
 
   void expanded1(const QModelIndex &index);
   void expanded2(const QModelIndex &index);
   void collapsed1(const QModelIndex &index);
   void collapsed2(const QModelIndex &index);
 
+  void filepathBrowse1Clicked();
+  void filepathBrowse2Clicked();
+
 private slots:
   void open();
-  void save();
+  void loadView(int treeIndex, QString filename);
+  void loadView(int treeIndex);
+  void save1();
+  void save2();
   void updateView();
 
 private:
@@ -56,7 +62,8 @@ private:
 
   QActionGroup *alignmentGroup;
   QAction *openAct;
-  QAction *saveAct;
+  QAction *save1Act;
+  QAction *save2Act;
   QAction *exitAct;
 
   QAction *testAct;
@@ -65,6 +72,7 @@ private:
   QList<TreeModel *> models;
   QList<QLineEdit *> filepaths;
   QList<QPushButton *> filepathBrowse;
+  QList<QFile *> files;
 
   QPushButton *toLeft;
   QPushButton *toRight;

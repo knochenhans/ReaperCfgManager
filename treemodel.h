@@ -15,6 +15,7 @@ class TreeModel : public QAbstractItemModel {
   Q_OBJECT
 
 public:
+  TreeModel(QObject *parent = 0);
   explicit TreeModel(const QString &data, QObject *parent = 0);
   ~TreeModel();
 
@@ -37,6 +38,9 @@ public:
   TreeItem *getRootItem() const;
 
   void setOtherModel(TreeModel *value);
+
+  void load(const QString &data);
+  void save(QTextStream &out);
 
 private:
   void setupModelData(const QStringList &lines, TreeItem *parent);

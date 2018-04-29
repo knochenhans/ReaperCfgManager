@@ -12,6 +12,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     filepaths << new QLineEdit;
     filepathBrowse << new QPushButton("…");
     filepathBrowse[i]->setMaximumWidth(32);
+
+    models << new TreeModel;
   }
 
   QHBoxLayout *layout = new QHBoxLayout;
@@ -71,7 +73,6 @@ void MainWindow::open() {
   //      "build-ReaperCfgManager-Desktop-Debug/data/",
   //      tr("Reaper Configuration Files (*.ini)"));
 
-  QList<QFile *> files;
   QList<QItemSelectionModel *> selectionModels;
 
   files << new QFile("/mnt/Daten/Datentausch/homeshare/Programmierung/C/"
@@ -81,13 +82,12 @@ void MainWindow::open() {
 
   for (int i = 0; i < 2; i++) {
     files[i]->open(QIODevice::ReadOnly);
-
-    models << new TreeModel(files[i]->readAll());
+    models[i]->load(files[i]->readAll());
+    files[i]->close();
   }
 
   for (int i = 0; i < 2; i++) {
     views[i]->setModel(models[i]);
-    files[i]->close();
 
     // Elide Paths
     QFontMetrics metrix(filepaths[i]->font());
@@ -120,12 +120,11 @@ void MainWindow::open() {
       SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
       this, SLOT(selectionChanged2(QItemSelection, QItemSelection)));
 
-  connect(toLeft, SIGNAL(clicked(bool)), this, SLOT(btnToLeftClicked()));
-  connect(toRight, SIGNAL(clicked(bool)), this, SLOT(btnToRightClicked()));
+  connect(toLeft, SIGNAL(clicked(bool)), this, SLOT(toLeftClicked()));
+  connect(toRight, SIGNAL(clicked(bool)), this, SLOT(toRightClicked()));
   connect(filterToRight, SIGNAL(clicked(bool)), this,
-          SLOT(btnFilterToRightClicked()));
-  connect(filterEqual, SIGNAL(clicked(bool)), this,
-          SLOT(btnFilterEqualClicked()));
+          SLOT(filterToRightClicked()));
+  connect(filterEqual, SIGNAL(clicked(bool)), this, SLOT(filterEqualClicked()));
 
   connect(views[0], SIGNAL(expanded(QModelIndex)), this,
           SLOT(expanded1(QModelIndex)));
@@ -139,9 +138,58 @@ void MainWindow::open() {
 
   connect(views[0]->verticalScrollBar(), SIGNAL(valueChanged(int)),
           views[1]->verticalScrollBar(), SLOT(setValue(int)));
+
+  connect(filepathBrowse[0], SIGNAL(clicked(bool)), this,
+          SLOT(filepathBrowse1Clicked()));
+  connect(filepathBrowse[1], SIGNAL(clicked(bool)), this,
+          SLOT(filepathBrowse2Clicked()));
 }
 
-void MainWindow::save() {}
+void MainWindow::loadView(int treeIndex, QString filename) {
+  files[treeIndex]->setFileName(filename);
+
+  files[treeIndex]->open(QIODevice::ReadOnly);
+  models[treeIndex]->load(files[treeIndex]->readAll());
+  files[treeIndex]->close();
+}
+
+void MainWindow::loadView(int treeIndex) {
+  QString filename =
+      QFileDialog::getOpenFileName(this, tr("Open Configuration File"), "",
+                                   tr("Reaper Configuration Files (*.ini)"));
+
+  if (!filename.isEmpty()) {
+    loadView(treeIndex, filename);
+  }
+}
+
+void MainWindow::save1() {
+  int treeIndex = 0;
+
+  // DEBUGGING
+  files[treeIndex]->setFileName("/tmp/test" + QString::number(treeIndex));
+
+  files[treeIndex]->open(QIODevice::WriteOnly);
+
+  QTextStream out(files[treeIndex]);
+  models[treeIndex]->save(out);
+
+  files[treeIndex]->close();
+}
+
+void MainWindow::save2() {
+  int treeIndex = 1;
+
+  // DEBUGGING
+  files[treeIndex]->setFileName("/tmp/test" + QString::number(treeIndex));
+
+  files[treeIndex]->open(QIODevice::WriteOnly);
+
+  QTextStream out(files[treeIndex]);
+  models[treeIndex]->save(out);
+
+  files[treeIndex]->close();
+}
 
 void MainWindow::updateView() {
   /*for (int r = 0; r < model->rowCount(); r++) {
@@ -186,7 +234,7 @@ void MainWindow::selectOther(const QItemSelection &selected,
   }
 }
 
-void MainWindow::btnToLeftClicked() {
+void MainWindow::toLeftClicked() {
   QModelIndexList indexes = views[1]->selectionModel()->selection().indexes();
 
   foreach (const QModelIndex &index, indexes) {
@@ -217,10 +265,10 @@ void MainWindow::btnToLeftClicked() {
   }
 }
 
-void MainWindow::btnToRightClicked() {}
+void MainWindow::toRightClicked() {}
 
-void MainWindow::btnFilterToRightClicked() {}
-void MainWindow::btnFilterEqualClicked() {}
+void MainWindow::filterToRightClicked() {}
+void MainWindow::filterEqualClicked() {}
 
 void MainWindow::expanded1(const QModelIndex &index) {
   expandOther(index, views[1]);
@@ -256,6 +304,10 @@ void MainWindow::collapsed2(const QModelIndex &index) {
   collapseOther(index, views[0]);
 }
 
+void MainWindow::filepathBrowse1Clicked() { loadView(0); }
+
+void MainWindow::filepathBrowse2Clicked() { loadView(1); }
+
 void MainWindow::collapseOther(const QModelIndex &index, QTreeView *otherView) {
   QModelIndex otherIndex;
 
@@ -271,10 +323,15 @@ void MainWindow::createActions() {
   openAct->setStatusTip(tr("Open"));
   connect(openAct, &QAction::triggered, this, &MainWindow::open);
 
-  saveAct = new QAction(tr("&Save"), this);
-  saveAct->setShortcuts(QKeySequence::Save);
-  saveAct->setStatusTip(tr("Save"));
-  connect(saveAct, &QAction::triggered, this, &MainWindow::save);
+  save1Act = new QAction(tr("&Save Left"), this);
+  save1Act->setShortcut(QKeySequence(tr("Ctrl+S")));
+  save1Act->setStatusTip(tr("Save Left"));
+  connect(save1Act, &QAction::triggered, this, &MainWindow::save1);
+
+  save2Act = new QAction(tr("&Save Right"), this);
+  save2Act->setShortcut(QKeySequence(tr("Ctrl+Shift+S")));
+  save2Act->setStatusTip(tr("Save Right"));
+  connect(save2Act, &QAction::triggered, this, &MainWindow::save2);
 
   exitAct = new QAction(tr("&Quit"), this);
   exitAct->setShortcuts(QKeySequence::Quit);
@@ -289,7 +346,8 @@ void MainWindow::createActions() {
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(openAct);
-  fileMenu->addAction(saveAct);
+  fileMenu->addAction(save1Act);
+  fileMenu->addAction(save2Act);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAct);
   fileMenu->addAction(testAct);
